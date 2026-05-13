@@ -28,12 +28,6 @@ COPY --from=builder /app/package*.json ./
 # Install production dependencies only
 RUN npm install --omit=dev
 
-# Install Express for HTTP wrapper
-RUN npm install --omit=dev express
-
-# Copy HTTP wrapper
-COPY docker/http-wrapper.cjs ./http-wrapper.cjs
-
 # Create non-root user
 RUN addgroup -g 1001 mcp && \
     adduser -D -u 1001 -G mcp mcp && \
@@ -48,5 +42,5 @@ EXPOSE 8080
 ENV PORT=8080 \
     NODE_ENV=production
 
-# Default command runs the HTTP wrapper
-CMD ["node", "/app/http-wrapper.cjs"]
+# Default command runs the HTTP server
+CMD ["node", "/app/build/http-server.js"]
