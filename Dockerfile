@@ -6,8 +6,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci
+# Install dependencies (package-lock.json not in repo)
+RUN npm install
 
 # Copy source
 COPY . .
@@ -26,7 +26,7 @@ COPY --from=builder /app/build ./build
 COPY --from=builder /app/package*.json ./
 
 # Install production dependencies only
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
 # Install Express for HTTP wrapper
 RUN npm install --omit=dev express
