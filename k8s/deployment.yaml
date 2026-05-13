@@ -1,0 +1,97 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spotify-mcp-server
+  namespace: n8n
+  labels:
+    app: spotify-mcp-server
+    component: mcp-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spotify-mcp-server
+  template:
+    metadata:
+      labels:
+        app: spotify-mcp-server
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: spotify-mcp-server
+        image: image-registry.openshift-image-registry.svc:5000/n8n/spotify-mcp-server:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+          name: http
+        env:
+        - name: PORT
+          value: "8080"
+        - name: NODE_ENV
+          value: "production"
+        # Spotify credentials - create secret with:
+        # oc create secret generic spotify-credentials \
+        #   --from-literal=client-id=YOUR_CLIENT_ID \
+        #   --from-literal=client-secret=YOUR_CLIENT_SECRET
+        - name: SPOTIFY_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: spotify-credentials
+              key: client-id
+              optional: true
+        - name: SPOTIFY_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: spotify-credentials
+              key: client-secret
+              optional: true
+        volumeMounts:
+        - name: spotify-config
+          mountPath: /app/spotify-config.json
+          subPath: spotify-config.json
+          readOnly: true
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 3
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 1001
+      volumes:
+      - name: spotify-config
+        secret:
+          secretName: spotify-config
+          items:
+          - key: spotify-config.json
+            path: spotify-config.json
+          defaultMode: 0400

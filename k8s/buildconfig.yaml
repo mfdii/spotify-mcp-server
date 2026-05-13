@@ -1,0 +1,28 @@
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: spotify-mcp-server
+  namespace: n8n
+  labels:
+    app: spotify-mcp-server
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: spotify-mcp-server:latest
+  source:
+    type: Git
+    git:
+      uri: https://github.com/mfdii/spotify-mcp-server
+      ref: main
+    contextDir: /
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Dockerfile
+  triggers:
+  - type: ConfigChange
+  - type: ImageChange
+  successfulBuildsHistoryLimit: 2
+  failedBuildsHistoryLimit: 2

@@ -1,0 +1,22 @@
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: spotify-mcp-server
+  namespace: n8n
+  labels:
+    app: spotify-mcp-server
+spec:
+  # Update this host to match your cluster domain
+  # Example: spotify-mcp-server-YOUR_NAMESPACE.apps.YOUR_CLUSTER.example.com
+  host: ""  # Leave empty for auto-generation
+  to:
+    kind: Service
+    name: spotify-mcp-server
+    weight: 100
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
