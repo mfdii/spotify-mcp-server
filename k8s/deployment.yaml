@@ -86,7 +86,6 @@ spec:
             drop:
             - ALL
           runAsNonRoot: true
-          runAsUser: 1001
       volumes:
       - name: spotify-config
         secret:
